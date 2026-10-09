@@ -38,21 +38,42 @@ public class Message {
     public Message(int messageNum, String recipientcell , String message ){
         messageNum= this.messageNum;
         recipientcell=this.recipientcell;
-        messageStaus=this.messageStatus;
+        message=this.message;
+        generateMessageID()=this.messageID;
+        createMessageHash()=this.messageHash;
         
         
       
     }
     //Method 1
     public boolean checkMessageID() {
-        
+        //Valid if the ID has less than 10 characters
+        boolean valid = false;
+        if (messageID.length()<=10){
+            valid=true;
+        }
+      return valid  ;
     }
     
     public boolean checkRecipientCell(){
         
     }
+    
+    //Formart - first two digits of ID: message Number :FIRSTLASTWORD
+        //eg. 00:0:HITONIGHT
     public String createMessageHash(){
+        String firstTwo= messageID.substring(0,2);
         
+        String[] words = message.trim().split(" ");
+        String firstWord = words[0];
+        String lastWord = words [words.length -1];
+        
+        // Remove punctuantion such as "?" or ","
+        firstWord=firstWord.replaceAll("[^A-Za-z0-9]", "");
+          lastWord=lastWord.replaceAll("[^A-Za-z0-9]", "");
+          
+          String hash = firstTwo + ":" + messageNum + ":" + firstWord + lastWord;
+          return hash.toUpperCase();
     }
     public String sentMessage(){
         
