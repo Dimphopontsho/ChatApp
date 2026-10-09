@@ -23,7 +23,7 @@ import org.json.simple.parser.ParseException;
        
 public class Message {
     //Variables
-    private int messageID;
+    private String messageID;
     private int messageNum;
     private String recipientcell;
     private String message;
@@ -83,7 +83,7 @@ public class Message {
         String validMenuOpt;
         
         switch (menuChoice) {
-            case 1: sentMessages.add(getFullDetails());
+            case 1: sentMessage.add(getFullDetails());
                     totalMessagesSent++;
                     validMenuOpt = "Message sent successfully";
                     break;
@@ -168,6 +168,29 @@ public class Message {
     }
     
     
+    //setters and getters
+    public String getMessageID() {
+        return messageID;
+    }
     
+    public String getRecipient() {
+        return recipientcell;
+    }
     
+    public String getMessage() {
+        return message;
+    }
+    public String getMessageHash() {
+        return messageHash;
+    }
+    
+    public void setMessageID(String messageID) {
+        this.messageHash = createMessageHash();
+        this.messageID = messageID;
+    }
+    
+    public String getFullDetails(){
+        return "MessageID:" + messageID + "\'nMessage Hash : " + messageHash 
+                + "\nRecipient: " + recipientcell + "\nMessage: " + message + "\n";
+    }
 }
