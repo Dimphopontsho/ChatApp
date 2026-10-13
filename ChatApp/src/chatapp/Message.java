@@ -16,40 +16,71 @@ import org.json.simple.parser.ParseException;
  */
 public class Message {
 
-    // Instance variables
+    // ===================== Constants =====================
+    // Shared with ChatApp so the text always matches
+    public static final String RECIPIENT_VALID = "Cellphone number captured successfully";
+    public static final String RECIPIENT_INVALID =
+            "Cellphone number is incorrectly formatted or does not contain the international code. "
+            + "Please enter the correct details";
+    public static final String LENGTH_VALID = "Message is ready to send";
+
+    private static final int MAX_LENGTH = 250;
+    private static final String FILE_PATH = "message.json";
+
+    // ===================== Static state =====================
+    private static final ArrayList<Message> sentMessages = new ArrayList<Message>();
+    private static int totalMessagesSent = 0;
+
+    // ===================== Instance variables =====================
     private String messageID;
     private int messageNum;
-    private String recipientcell;
+    private String recipientCell;
     private String message;
     private String messageHash;
 
-    // Static variables shared by all messages
-    private static ArrayList<Message> sentMessages = new ArrayList<Message>();
-    private static int totalMessagesSent = 0;
-
-    // Constructor
-    public Message(int messageNum, String recipientcell, String message) {
+    // ===================== Constructor =====================
+    public Message(int messageNum, String recipientCell, String message) {
         this.messageNum = messageNum;
-        this.recipientcell = recipientcell;
+        this.recipientCell = recipientCell;
         this.message = message;
-        this.messageID = generateMessageID();      // ID first...
-        this.messageHash = createMessageHash();    // ...because the hash uses the ID
+        this.messageID = generateMessageID();    // ID first...
+        this.messageHash = createMessageHash();  // ...because the hash uses the ID
     }
+
+    // ===================== Validation =====================
 
     // Valid if the ID has 10 characters or fewer
     public boolean checkMessageID() {
         return messageID.length() <= 10;
     }
 
-    // Recipient must be in the format +27 followed by 9 digits
-    public String checkRecipientCell() {
-        String valid = "Cellphone number is incorrectly formatted or does not contain the international code. "
-                + "Please enter the correct details";
-        if (recipientcell.matches("^\\+27[0-9]{9}$")) {
-            valid = "Cellphone number captured successfully";
-        }
-        return valid;
+    // Recipient must be +27 followed by 9 digits
+    public static boolean isValidRecipient(String cell) {
+        return cell != null && cell.matches("^\\+27[0-9]{9}$");
     }
+
+    // Message must be 250 characters or fewer
+    public static boolean isValidLength(String text) {
+        return text != null && text.length() <= MAX_LENGTH;
+    }
+
+    public static String lengthMessage(String text) {
+        if (isValidLength(text)) {
+            return LENGTH_VALID;
+        }
+        int extra = text.length() - MAX_LENGTH;
+        return "Message exceeds 250 characters by " + extra + "; please reduce the size";
+    }
+
+    public String checkRecipientCell() {
+        return isValidRecipient(recipientCell) ? RECIPIENT_VALID : RECIPIENT_INVALID;
+    }
+
+    public String checkMessageLength() {
+        return lengthMessage(message);
+    }
+
+    // ===================== Hash =====================
 
     // Format: first two digits of ID : message number : FIRSTWORD+LASTWORD
     // e.g. 00:0:HITONIGHT
@@ -67,35 +98,38 @@ public class Message {
             lastWord = words[words.length - 1].replaceAll("[^A-Za-z0-9]", "");
         }
 
-        String hash = firstTwo + ":" + messageNum + ":" + firstWord + lastWord;
-        return hash.toUpperCase();
+        return (firstTwo + ":" + messageNum + ":" + firstWord + lastWord).toUpperCase();
     }
+
+    // ===================== Actions =====================
 
     // 1 = send, 2 = disregard, 3 = store
     public String sentMessage(int menuChoice) {
-        String validMenuOpt;
+        String result;
 
         switch (menuChoice) {
             case 1:
                 sentMessages.add(this);
                 totalMessagesSent++;
-                validMenuOpt = "Message sent successfully";
+                result = "Message sent successfully";
                 break;
             case 2:
-                validMenuOpt = "Press 0 to delete the message";
+                result = "Press 0 to delete the message";
                 break;
             case 3:
-                validMenuOpt = "Message successfully stored";
+                result = storeMessage()
+                        ? "Message successfully stored"
+                        : "Message could not be stored";
                 break;
             default:
-                validMenuOpt = "Invalid choice";
+                result = "Invalid choice";
                 break;
         }
-        return validMenuOpt;
+        return result;
     }
 
-    // Returns a formatted string of all sent messages
-    public String printMessage() {
+    // Formatted string of all sent messages
+    public static String printMessage() {
         if (sentMessages.isEmpty()) {
             return "No messages have been sent.";
         }
@@ -104,42 +138,26 @@ public class Message {
         for (Message m : sentMessages) {
             sb.append("Message ID: ").append(m.messageID).append("\n");
             sb.append("Message Hash: ").append(m.messageHash).append("\n");
-            sb.append("Recipient: ").append(m.recipientcell).append("\n");
+            sb.append("Recipient: ").append(m.recipientCell).append("\n");
             sb.append("Message: ").append(m.message).append("\n");
             sb.append("--------------------------\n");
         }
         return sb.toString();
     }
 
-    public int returnTotalMessages() {
+    public static int returnTotalMessages() {
         return totalMessagesSent;
-    }
-
-    // Message length must be 250 characters or fewer
-    public String checkMessageLength() {
-        String lengthValid;
-
-        if (message.length() <= 250) {
-            lengthValid = "Message is ready to send";
-        } else {
-            int extra = message.length() - 250;
-            lengthValid = "Message exceeds 250 characters by " + extra + "; please reduce the size";
-        }
-        return lengthValid;
     }
 
     // Appends this message to message.json
     @SuppressWarnings("unchecked")
     public boolean storeMessage() {
-        boolean stored;
-        String filePath = "message.json";
         JSONArray messageArray = new JSONArray();
 
-        File file = new File(filePath);
+        File file = new File(FILE_PATH);
         if (file.exists()) {
             try (FileReader reader = new FileReader(file)) {
-                JSONParser parser = new JSONParser();
-                Object obj = parser.parse(reader);
+                Object obj = new JSONParser().parse(reader);
                 if (obj instanceof JSONArray) {
                     messageArray = (JSONArray) obj;
                 }
@@ -151,33 +169,31 @@ public class Message {
         JSONObject messageObject = new JSONObject();
         messageObject.put("messageID", messageID);
         messageObject.put("messageHash", messageHash);
-        messageObject.put("recipient", recipientcell);
+        messageObject.put("recipient", recipientCell);
         messageObject.put("message", message);
         messageArray.add(messageObject);
 
-        try (FileWriter writer = new FileWriter(filePath)) {
+        try (FileWriter writer = new FileWriter(FILE_PATH)) {
             writer.write(messageArray.toJSONString());
             writer.flush();
-            stored = true;
+            return true;
         } catch (IOException e) {
             System.out.println("Error writing JSON file " + e.getMessage());
-            stored = false;
+            return false;
         }
-        return stored;
     }
 
     // Generates a random 10-digit ID
     private String generateMessageID() {
-        Random randomObj = new Random();
+        Random random = new Random();
         StringBuilder id = new StringBuilder();
-
         for (int count = 0; count < 10; count++) {
-            id.append(randomObj.nextInt(10));
+            id.append(random.nextInt(10));
         }
         return id.toString();
     }
 
-    // Getters
+    // ===================== Getters / setters =====================
     public String getMessageID() {
         return messageID;
     }
@@ -187,7 +203,7 @@ public class Message {
     }
 
     public String getRecipient() {
-        return recipientcell;
+        return recipientCell;
     }
 
     public String getMessage() {
@@ -198,7 +214,7 @@ public class Message {
         return messageHash;
     }
 
-    // Setter: update the ID first, then rebuild the hash
+    // Update the ID first, then rebuild the hash
     public void setMessageID(String messageID) {
         this.messageID = messageID;
         this.messageHash = createMessageHash();
@@ -207,7 +223,7 @@ public class Message {
     public String getFullDetails() {
         return "MessageID: " + messageID
                 + "\nMessage Hash: " + messageHash
-                + "\nRecipient: " + recipientcell
+                + "\nRecipient: " + recipientCell
                 + "\nMessage: " + message + "\n";
     }
 }
