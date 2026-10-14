@@ -12,10 +12,12 @@ public class MessageIT {
 
     @Before
     public void setUp() {
-        message = new Message(
-                1,
-                "+27831234567",
-                "Hi Mike, can you join us for dinner tonight"
+       Message.resetForTesting();
+
+    message = new Message(
+            1,
+            "+27831234567",
+            "Hi Mike, can you join us for dinner tonight"
         );
     }
 
@@ -147,8 +149,8 @@ public class MessageIT {
         message.setMessageID("0012345678");
 
         assertEquals(
-                "00:1:HIKENIGHT",
-                message.createMessageHash()
+                "00:1:HITONIGHT",
+            message.createMessageHash()
         );
     }
 
@@ -271,9 +273,10 @@ public class MessageIT {
         message.setMessageID("0012345678");
 
         assertEquals("0012345678", message.getMessageID());
-        assertEquals(
-                "00:1:HIKENIGHT",
-                message.getMessageHash()
+
+    assertEquals(
+            "00:1:HITONIGHT",
+            message.getMessageHash()
         );
     }
 

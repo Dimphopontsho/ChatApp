@@ -28,8 +28,17 @@ public class Message {
     private static final String FILE_PATH = "message.json";
 
     // ===================== Static state =====================
-    private static final ArrayList<Message> sentMessages = new ArrayList<Message>();
-    private static int totalMessagesSent = 0;
+    private static final ArrayList<Message> sentMessages =
+        new ArrayList<Message>();
+
+private static int totalMessagesSent = 0;
+
+// Reset shared state so each test can start independently.
+static void resetForTesting() {
+    sentMessages.clear();
+    totalMessagesSent = 0;
+}
+
 
     // ===================== Instance variables =====================
     private String messageID;
