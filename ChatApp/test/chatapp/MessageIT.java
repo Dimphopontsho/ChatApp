@@ -1,289 +1,291 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/UnitTests/JUnit4TestClass.java to edit this template
- */
 package chatapp;
 
+import java.io.File;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author dtsotetsi
- */
 public class MessageIT {
-    
-    public MessageIT() {
-    }
-    
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
+
+    private Message message;
+
     @Before
     public void setUp() {
+        message = new Message(
+                1,
+                "+27831234567",
+                "Hi Mike, can you join us for dinner tonight"
+        );
     }
-    
+
     @After
     public void tearDown() {
+        File storedFile = new File("message.json");
+        if (storedFile.exists()) {
+            storedFile.delete();
+        }
     }
 
-    /**
-     * Test of checkMessageID method, of class Message.
-     */
     @Test
     public void testCheckMessageID() {
-        System.out.println("checkMessageID");
-        Message instance = null;
-        boolean expResult = false;
-        boolean result = instance.checkMessageID();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(message.checkMessageID());
     }
 
-    /**
-     * Test of isValidRecipient method, of class Message.
-     */
     @Test
-    public void testIsValidRecipient() {
-        System.out.println("isValidRecipient");
-        String cell = "";
-        boolean expResult = false;
-        boolean result = Message.isValidRecipient(cell);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testIsValidRecipient_Valid() {
+        assertTrue(Message.isValidRecipient("+27831234567"));
     }
 
-    /**
-     * Test of isValidLength method, of class Message.
-     */
     @Test
-    public void testIsValidLength() {
-        System.out.println("isValidLength");
-        String text = "";
-        boolean expResult = false;
-        boolean result = Message.isValidLength(text);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testIsValidRecipient_Empty() {
+        assertFalse(Message.isValidRecipient(""));
     }
 
-    /**
-     * Test of lengthMessage method, of class Message.
-     */
     @Test
-    public void testLengthMessage() {
-        System.out.println("lengthMessage");
-        String text = "";
-        String expResult = "";
-        String result = Message.lengthMessage(text);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testIsValidRecipient_Null() {
+        assertFalse(Message.isValidRecipient(null));
     }
 
-    /**
-     * Test of checkRecipientCell method, of class Message.
-     */
     @Test
-    public void testCheckRecipientCell() {
-        System.out.println("checkRecipientCell");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.checkRecipientCell();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testIsValidRecipient_NoInternationalCode() {
+        assertFalse(Message.isValidRecipient("0831234567"));
     }
 
-    /**
-     * Test of checkMessageLength method, of class Message.
-     */
     @Test
-    public void testCheckMessageLength() {
-        System.out.println("checkMessageLength");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.checkMessageLength();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testIsValidRecipient_WrongLength() {
+        assertFalse(Message.isValidRecipient("+2783123456"));
     }
 
-    /**
-     * Test of createMessageHash method, of class Message.
-     */
+    @Test
+    public void testIsValidLength_Valid() {
+        assertTrue(Message.isValidLength("Hi Mike, can you join us for dinner tonight"));
+    }
+
+    @Test
+    public void testIsValidLength_Empty() {
+        assertTrue(Message.isValidLength(""));
+    }
+
+    @Test
+    public void testIsValidLength_Null() {
+        assertFalse(Message.isValidLength(null));
+    }
+
+    @Test
+    public void testIsValidLength_TooLong() {
+        String longText = "a".repeat(251);
+        assertFalse(Message.isValidLength(longText));
+    }
+
+    @Test
+    public void testLengthMessage_Valid() {
+        assertEquals(
+                Message.LENGTH_VALID,
+                Message.lengthMessage("Hi Mike, can you join us for dinner tonight")
+        );
+    }
+
+    @Test
+    public void testLengthMessage_TooLong() {
+        String longText = "a".repeat(251);
+
+        String result = Message.lengthMessage(longText);
+
+        assertEquals(
+                "Message exceeds 250 characters by 1; please reduce the size",
+                result
+        );
+    }
+
+    @Test
+    public void testCheckRecipientCell_Valid() {
+        assertEquals(
+                Message.RECIPIENT_VALID,
+                message.checkRecipientCell()
+        );
+    }
+
+    @Test
+    public void testCheckRecipientCell_Invalid() {
+        Message invalid = new Message(
+                2,
+                "0831234567",
+                "Invalid recipient test"
+        );
+
+        assertEquals(
+                Message.RECIPIENT_INVALID,
+                invalid.checkRecipientCell()
+        );
+    }
+
+    @Test
+    public void testCheckMessageLength_Valid() {
+        assertEquals(
+                Message.LENGTH_VALID,
+                message.checkMessageLength()
+        );
+    }
+
+    @Test
+    public void testCheckMessageLength_TooLong() {
+        Message longMessage = new Message(
+                3,
+                "+27831234567",
+                "a".repeat(251)
+        );
+
+        assertEquals(
+                "Message exceeds 250 characters by 1; please reduce the size",
+                longMessage.checkMessageLength()
+        );
+    }
+
     @Test
     public void testCreateMessageHash() {
-        System.out.println("createMessageHash");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.createMessageHash();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        message.setMessageID("0012345678");
+
+        assertEquals(
+                "00:1:HIKENIGHT",
+                message.createMessageHash()
+        );
     }
 
-    /**
-     * Test of sentMessage method, of class Message.
-     */
     @Test
-    public void testSentMessage() {
-        System.out.println("sentMessage");
-        int menuChoice = 0;
-        Message instance = null;
-        String expResult = "";
-        String result = instance.sentMessage(menuChoice);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testCreateMessageHash_SingleWord() {
+        Message singleWord = new Message(
+                4,
+                "+27831234567",
+                "Hello"
+        );
+        singleWord.setMessageID("0098765432");
+
+        assertEquals(
+                "00:4:HELLOHELLO",
+                singleWord.createMessageHash()
+        );
     }
 
-    /**
-     * Test of printMessage method, of class Message.
-     */
     @Test
-    public void testPrintMessage() {
-        System.out.println("printMessage");
-        String expResult = "";
+    public void testSentMessage_Send() {
+        int before = Message.returnTotalMessages();
+
+        String result = message.sentMessage(1);
+
+        assertEquals("Message sent successfully", result);
+        assertEquals(before + 1, Message.returnTotalMessages());
+    }
+
+    @Test
+    public void testSentMessage_Disregard() {
+        assertEquals(
+                "Press 0 to delete the message",
+                message.sentMessage(2)
+        );
+    }
+
+    @Test
+    public void testSentMessage_Store() {
+        String result = message.sentMessage(3);
+
+        assertEquals("Message successfully stored", result);
+    }
+
+    @Test
+    public void testSentMessage_InvalidChoice() {
+        assertEquals(
+                "Invalid choice",
+                message.sentMessage(99)
+        );
+    }
+
+    @Test
+    public void testPrintMessage_NoMessages() {
+        assertEquals(
+                "No messages have been sent.",
+                Message.printMessage()
+        );
+    }
+
+    @Test
+    public void testPrintMessage_AfterSend() {
+        message.sentMessage(1);
+
         String result = Message.printMessage();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        assertTrue(result.contains("Message ID: " + message.getMessageID()));
+        assertTrue(result.contains("+27831234567"));
+        assertTrue(result.contains("Hi Mike, can you join us for dinner tonight"));
     }
 
-    /**
-     * Test of returnTotalMessages method, of class Message.
-     */
     @Test
     public void testReturnTotalMessages() {
-        System.out.println("returnTotalMessages");
-        int expResult = 0;
-        int result = Message.returnTotalMessages();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        int before = Message.returnTotalMessages();
+
+        message.sentMessage(1);
+
+        assertEquals(before + 1, Message.returnTotalMessages());
     }
 
-    /**
-     * Test of storeMessage method, of class Message.
-     */
     @Test
     public void testStoreMessage() {
-        System.out.println("storeMessage");
-        Message instance = null;
-        boolean expResult = false;
-        boolean result = instance.storeMessage();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(message.storeMessage());
+
+        File file = new File("message.json");
+        assertTrue(file.exists());
     }
 
-    /**
-     * Test of getMessageID method, of class Message.
-     */
     @Test
     public void testGetMessageID() {
-        System.out.println("getMessageID");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.getMessageID();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNotNull(message.getMessageID());
+        assertEquals(10, message.getMessageID().length());
     }
 
-    /**
-     * Test of getMessageNum method, of class Message.
-     */
     @Test
     public void testGetMessageNum() {
-        System.out.println("getMessageNum");
-        Message instance = null;
-        int expResult = 0;
-        int result = instance.getMessageNum();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(1, message.getMessageNum());
     }
 
-    /**
-     * Test of getRecipient method, of class Message.
-     */
     @Test
     public void testGetRecipient() {
-        System.out.println("getRecipient");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.getRecipient();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals("+27831234567", message.getRecipient());
     }
 
-    /**
-     * Test of getMessage method, of class Message.
-     */
     @Test
     public void testGetMessage() {
-        System.out.println("getMessage");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.getMessage();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(
+                "Hi Mike, can you join us for dinner tonight",
+                message.getMessage()
+        );
     }
 
-    /**
-     * Test of getMessageHash method, of class Message.
-     */
     @Test
     public void testGetMessageHash() {
-        System.out.println("getMessageHash");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.getMessageHash();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNotNull(message.getMessageHash());
+        assertFalse(message.getMessageHash().isEmpty());
     }
 
-    /**
-     * Test of setMessageID method, of class Message.
-     */
     @Test
     public void testSetMessageID() {
-        System.out.println("setMessageID");
-        String messageID = "";
-        Message instance = null;
-        instance.setMessageID(messageID);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        message.setMessageID("0012345678");
+
+        assertEquals("0012345678", message.getMessageID());
+        assertEquals(
+                "00:1:HIKENIGHT",
+                message.getMessageHash()
+        );
     }
 
-    /**
-     * Test of getFullDetails method, of class Message.
-     */
     @Test
     public void testGetFullDetails() {
-        System.out.println("getFullDetails");
-        Message instance = null;
-        String expResult = "";
-        String result = instance.getFullDetails();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        String details = message.getFullDetails();
+
+        assertTrue(details.contains("MessageID: " + message.getMessageID()));
+        assertTrue(details.contains("Message Hash: " + message.getMessageHash()));
+        assertTrue(details.contains("Recipient: +27831234567"));
+        assertTrue(details.contains(
+                "Message: Hi Mike, can you join us for dinner tonight"
+        ));
     }
-    
 }
